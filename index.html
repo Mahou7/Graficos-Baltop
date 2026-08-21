@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" /> <!-- Define a codificação de caracteres, importante para acentos funcionarem -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" /> <!-- Faz a página se adaptar a telas de celular -->
+  <title>Comparativo de Riqueza entre Regiões</title>
+  <link rel="icon" type="image/svg+xml" href="favicon.svg" /> <!-- Ícone da aba do navegador -->
+  <link rel="stylesheet" href="style.css" /> <!-- Conecta o arquivo de estilos (CSS) a essa página -->
+
+  <!-- OPEN GRAPH: essas meta tags são o que WhatsApp, Discord, Twitter etc. leem para
+       montar o "cartãozinho" de prévia quando alguém cola o link — sem elas, aparece
+       só o link cru, sem título nem descrição -->
+  <meta property="og:title" content="Comparativo de Riqueza — Kanto vs Johto" />
+  <meta property="og:description" content="Ranking do baltop, atualizado semanalmente, comparando os 10 mais ricos de Kanto e Johto." />
+  <meta property="og:type" content="website" />
+  <meta name="twitter:card" content="summary" />
+
+  <!-- Tipografia de jogo retrô: Press Start 2P é a fonte pixelada 8-bit (usada só em
+       títulos/botões curtos — texto corrido nela seria ilegível), Rubik é a fonte de
+       interface (arredondada, como os menus modernos da franquia), e Space Mono dá
+       aos números aquele ar de "tela de status" -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Rubik:wght@400;500;600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+  <!-- TELA DE CARREGAMENTO: aparece por menos de 1 segundo ao abrir a página, com uma
+       barra de progresso pixelada — puramente estético, reforça o tema retrô.
+       Sempre visível por padrão (sem precisar de JS pra aparecer), e o JavaScript
+       é quem a esconde depois de alguns instantes (ver o final do script.js) -->
+  <div class="tela-carregamento" id="telaCarregamento">
+    <p class="carregamento-texto">CARREGANDO...</p>
+    <div class="carregamento-barra">
+      <div class="carregamento-progresso" id="carregamentoProgresso"></div>
+    </div>
+  </div>
+
+  <!-- Faixa decorativa no topo, com as três cores centrais da marca: vermelho de
+       Kanto, dourado de Johto e azul da Pokédex — o "elemento-assinatura" do site -->
+  <div class="faixa-decorativa"></div>
+
+  <!-- CABEÇALHO: título à esquerda e botões à direita, distribuídos dinamicamente com flexbox.
+       Em telas estreitas, o CSS empilha os dois grupos automaticamente (ver style.css) -->
+  <header class="cabecalho">
+    <div class="cabecalho-textos">
+      <p class="kicker">Relatório Semanal · Baltop</p>
+      <h1><span class="titulo-lead">Top 10 mais ricos:</span> <span class="destaque destaque-kanto">Kanto</span> <span class="versus">VS</span> <span class="destaque destaque-johto">Johto</span></h1>
+      <!-- Preenchido pelo JavaScript conforme o modo — o texto muda porque "posição
+           por posição" só faz sentido no modo "Por Região", não nos outros dois -->
+      <p class="subtitulo" id="subtitulo"></p>
+    </div>
+
+    <!-- Coluna central: fica exatamente no meio do cabeçalho (grid de 3 colunas,
+         ver .cabecalho no CSS), independente do quanto o texto ou os controles
+         ao redor ocupam. O JavaScript preenche o número/legenda comparando o total
+         das duas regiões, e as duas barras de HP logo abaixo, no mesmo estilo de
+         uma tela de batalha do jogo */ -->
+    <div class="cabecalho-centro">
+      <p class="resumo-comparativo">
+        <span class="resumo-numero" id="resumoNumero"></span>
+        <span class="resumo-legenda" id="resumoLegenda"></span>
+      </p>
+
+      <!-- Duas barras de vida, como as de uma tela de batalha — preenchidas pelo
+           JavaScript proporcionalmente ao total de cada região no snapshot atual -->
+      <div class="barras-hp">
+        <div class="barra-hp-linha">
+          <span class="barra-hp-legenda">KANTO</span>
+          <div class="barra-hp-trilha">
+            <div class="barra-hp-preenchimento regiaoA" id="barraHpKanto"></div>
+          </div>
+        </div>
+        <div class="barra-hp-linha">
+          <span class="barra-hp-legenda">JOHTO</span>
+          <div class="barra-hp-trilha">
+            <div class="barra-hp-preenchimento regiaoB" id="barraHpJohto"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Agrupa os controles de modo/tema e o seletor de data/contador numa coluna só,
+         à direita — antes eles ficavam espalhados, deixando a coluna esquerda muito
+         mais alta que a direita e um vazio embaixo dos botões -->
+    <div class="cabecalho-lateral">
+      <div class="cabecalho-controles">
+        <!-- Botões para trocar como o gráfico é exibido -->
+        <div class="controles controles-principal">
+          <button id="btnLado" class="botao ativo">Por Região</button>
+          <button id="btnRanking" class="botao">Ranking geral</button>
+          <button id="btnEvolucao" class="botao">Evolução</button>
+        </div>
+
+        <!-- Alterna entre tema escuro e claro, e lembra a escolha (localStorage) -->
+        <button id="btnTema" class="botao-tema" aria-label="Alternar tema claro/escuro" title="Alternar tema">🌙</button>
+      </div>
+
+      <!-- Seletor de data e contador de atualização -->
+      <div class="cabecalho-meta">
+        <div class="atualizado">
+          <label for="seletorData">Dados de:</label>
+          <!-- As opções desse seletor são preenchidas dinamicamente pelo script.js,
+               uma para cada snapshot salvo (ver o array "snapshots" no topo do arquivo) -->
+          <select id="seletorData"></select>
+        </div>
+        <!-- Preenchido pelo JavaScript: calcula 7 dias após a data mais recente do histórico -->
+        <p class="proxima-atualizacao" id="proximaAtualizacao"></p>
+      </div>
+    </div>
+  </header>
+
+  <!-- Flash branco rápido ao trocar de modo (Por Região/Ranking/Evolução), como a
+       tela que pisca quando uma batalha começa no jogo — ver dispararFlash() no JS -->
+  <div class="tela-flash" id="telaFlash"></div>
+
+  <!-- CONTEÚDO PRINCIPAL: ocupa todo o espaço vertical sobrando entre header e footer,
+       e centraliza o gráfico nesse espaço (é isso que resolve o "vazio" que sobrava embaixo) -->
+  <main class="conteudo">
+    <!-- CARD DE CAMPEÃO: só aparece no modo "Ranking geral", destacando o 1º lugar
+         geral com uma cabeça maior e a contagem de quantas vezes essa pessoa já
+         apareceu em 1º no histórico de snapshots — preenchido pelo JavaScript -->
+    <div class="cartao-campeao" id="cartaoCampeao"></div>
+
+    <!-- PÓDIO: preenchido pelo JavaScript conforme o modo — um pódio único (top 3 geral)
+         no modo "Ranking geral", ou dois pódios lado a lado (um por região) no modo
+         "Por Região". Some no modo "Evolução", onde não existe um "top 3" atual —
+         usa a cabeça da skin de cada jogador (serviço minotar.net, precisa de internet) -->
+    <div class="podios-wrap" id="podiosWrap"></div>
+
+    <!-- Controle secundário (Colunas/Pizza) e a busca de jogador, lado a lado -->
+    <div class="linha-controles-secundarios">
+      <!-- Só faz sentido nos modos "Lado a lado" e "Ranking geral" — o JavaScript
+           esconde ele no modo "Evolução" -->
+      <div class="controles controles-tipo" id="controlesTipo">
+        <button id="btnColunas" class="botao ativo">Colunas</button>
+        <button id="btnPizza" class="botao">Pizza</button>
+      </div>
+
+      <!-- Destaca (com o mesmo efeito de pulso do hover) a coluna/fatia de quem for digitado -->
+      <input type="text" id="buscaJogador" class="busca-jogador" placeholder="Buscar jogador..." />
+    </div>
+
+    <!-- Preenchido pelo JavaScript — só aparece no modo "Ranking geral", deixando claro
+         que ali são as 20 pessoas juntas (top 10 de Kanto + top 10 de Johto) -->
+    <h2 class="titulo-grafico" id="tituloGrafico"></h2>
+
+    <!-- Esse <div> vazio vai ser preenchido dinamicamente pelo JavaScript com o gráfico -->
+    <div id="grafico" class="grafico"></div>
+
+    <!-- Legenda explicando as cores usadas no gráfico -->
+    <div class="legenda">
+      <div class="item-legenda">
+        <span class="cor-legenda regiaoA"></span> Kanto
+      </div>
+      <div class="item-legenda">
+        <span class="cor-legenda regiaoB"></span> Johto
+      </div>
+    </div>
+
+    <!-- Preenchido pelo JavaScript só quando alguém saiu do Top 10 desde a atualização anterior -->
+    <p class="nota-saidas" id="notaSaidas"></p>
+
+    <div class="botoes-acoes">
+      <button id="btnBaixarImagem" class="botao-baixar">Baixar gráfico como imagem</button>
+      <!-- Copia a URL atual, que já guarda o modo/data/tipo de gráfico selecionados (ver script.js) -->
+      <button id="btnCopiarLink" class="botao-baixar">Copiar link desta visualização</button>
+      <button id="btnExportarJson" class="botao-baixar">Exportar .json</button>
+      <button id="btnExportarCsv" class="botao-baixar">Exportar .csv</button>
+    </div>
+
+    <!-- HALL DA FAMA: recordes calculados a partir de todo o histórico até a data
+         selecionada — maior ganho numa atualização, maior queda, e o reinado mais
+         longo como 1º geral. Preenchido pelo JavaScript, atualiza junto com a data -->
+    <section class="hall-da-fama" id="hallDaFama"></section>
+  </main>
+
+  <!-- CARTÃO DE JOGADOR: modal que abre ao clicar em qualquer nome (coluna, fatia
+       de pizza ou item de legenda), com estatísticas daquela pessoa no histórico
+       inteiro. Fica escondido até o JavaScript abrir (ver abrirCartaoJogador) -->
+  <div class="modal-fundo" id="modalFundo">
+    <div class="modal-jogador" id="modalJogador">
+      <button class="modal-fechar" id="modalFechar" aria-label="Fechar">✕</button>
+      <div id="modalJogadorConteudo"></div>
+    </div>
+  </div>
+
+  <!-- RODAPÉ: espaço reservado para créditos/contato. Troque pelos seus dados reais -->
+  <footer class="rodape">
+    <p>Desenvolvido como projeto de estudo em HTML, CSS e JavaScript.</p>
+    <p class="rodape-contato">Nathã Cazelato · Cazelato@exemplo.com · <a href="#">GitHub</a></p>
+    <p class="atalhos-dica">Atalhos: ← → trocam a data · 1 2 3 trocam o modo</p>
+  </footer>
+
+  <!-- Biblioteca externa usada só pelo botão "Baixar gráfico como imagem" — converte
+       o HTML do gráfico numa imagem. Precisa de internet pra carregar; se a página
+       for aberta offline, esse botão simplesmente não funciona (ver script.js) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="script.js"></script> <!-- Conecta o arquivo JavaScript, que contém a lógica do gráfico -->
+</body>
+</html>

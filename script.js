@@ -116,6 +116,33 @@ const snapshots = [
       { nome: "stvvvck", valor: 68621981 },
     ],
   },
+  {
+    data: "23/08/2026",
+    regiaoA: [
+      { nome: "Mandaleri", valor: 2595772830 },
+      { nome: "Diig_Uchis", valor: 812514561 },
+      { nome: "piricius", valor: 255593418 },
+      { nome: "H0llyWo0D_", valor: 253492359 },
+      { nome: "am4ymon", valor: 332017422 },
+      { nome: "RuivoZx", valor: 175427934 },
+      { nome: "<impactor:account:name>", valor: 172904298 },
+      { nome: "CikoskiCraft", valor: 141388202 },
+      { nome: "Nynx", valor: 140648035 },
+      { nome: "<impactor:account:name> #2", valor: 121653869 },
+    ],
+    regiaoB: [
+      { nome: "Mahou", valor: 735726027 },
+      { nome: "xAdrizinha", valor: 343575699 },
+      { nome: "TIAMAT_", valor: 314474168 },
+      { nome: "WolgraD", valor: 195877910 },
+      { nome: "YuuichiHeinhz", valor: 125755277 },
+      { nome: "eilexnn", valor: 116725676 },
+      { nome: "black22k", valor: 111663111 },
+      { nome: "andy", valor: 89415191 },
+      { nome: "0luas", valor: 74748983 },
+      { nome: "stvvvck", valor: 68621981 },
+    ],
+  },
 ];
 
 // Pega a referência do elemento HTML onde o gráfico será desenhado
